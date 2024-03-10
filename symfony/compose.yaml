@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      #hostname database ami a szekció neve egyben:
+      POSTGRES_DB: ${POSTGRES_DB:-tesztDb}
+      POSTGRES_USER: ${POSTGRES_USER:-teszt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-teszt}
+    ports:
+      - "5432:5432"
+    #volumes:
+      # - database_data:/var/lib/postgresql/data:rw
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+    networks:
+      - symfony
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: teszt@teszt.hu
+      PGADMIN_DEFAULT_PASSWORD: teszt@teszt.hu
+    depends_on:
+      - database
+    #volumes:
+      #- pgadmin-data:/var/lib/pgadmin
+      #- pgadmin-data:/var/lib/pgadmin
+    networks:
+      - symfony
+
+  php:
+    image: php:8.3-fpm
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - symfony
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./../nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - symfony
+
+networks:
+  symfony:
+
+volumes:
+  database_data:
+  pgadmin-data:
+
+
+
